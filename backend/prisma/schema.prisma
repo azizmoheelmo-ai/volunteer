@@ -1,0 +1,132 @@
+// Bayan - Smart School Volunteering - Database Schema
+// Portable schema (no native enums/arrays) so it can run on SQLite for local dev
+// and switch to PostgreSQL in production by changing the datasource block only.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Roles: TEACHER (مشرف تطوع) | STUDENT | ADMIN
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          String
+  studentNumber String? // رقم الطالب - للطلاب فقط
+  grade         String? // الصف/الشعبة - للطلاب فقط، مثال "2-3"
+  phone         String?
+  createdAt     DateTime @default(now())
+
+  opportunitiesCreated Opportunity[]  @relation("CreatedOpportunities")
+  applications         Application[]  @relation("StudentApplications")
+  decidedApplications  Application[]  @relation("DecidedApplications")
+  attendanceMarks      Attendance[]   @relation("MarkedAttendance")
+  attendanceRecords    Attendance[]   @relation("StudentAttendance")
+  hoursCredits         HoursCredit[]  @relation("StudentHours")
+  approvedHours        HoursCredit[]  @relation("ApprovedHours")
+  notifications        Notification[]
+}
+
+// Volunteering opportunity (فرصة تطوعية)
+model Opportunity {
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  field         String // ثقافي | بيئي | اجتماعي | تقني | تنظيمي
+  startAt       DateTime
+  endAt         DateTime
+  hours         Float
+  maxVolunteers Int
+  targetGrades  String // comma-separated grade codes, "" = كل الصفوف
+  status        String @default("PUBLISHED") // DRAFT | PUBLISHED | CLOSED | COMPLETED
+  uniqueSlug    String @unique
+
+  createdById String
+  createdBy   User   @relation("CreatedOpportunities", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  applications Application[]
+  attendance   Attendance[]
+  hoursCredits HoursCredit[]
+
+  @@index([status])
+  @@index([field])
+}
+
+// Student's request to join an opportunity
+model Application {
+  id            String @id @default(cuid())
+  opportunityId String
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       User   @relation("StudentApplications", fields: [studentId], references: [id])
+
+  skills    String? // مهارات اختيارية يذكرها الطالب عند التقديم
+  status    String  @default("PENDING") // PENDING | ACCEPTED | REJECTED
+
+  appliedAt   DateTime  @default(now())
+  decidedAt   DateTime?
+  decidedById String?
+  decidedBy   User?     @relation("DecidedApplications", fields: [decidedById], references: [id])
+
+  attendance Attendance?
+
+  @@unique([opportunityId, studentId])
+  @@index([opportunityId, status])
+}
+
+// Digital attendance sheet (كشف تحضير رقمي) - one row per accepted application
+model Attendance {
+  id            String @id @default(cuid())
+  opportunityId String
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       User   @relation("StudentAttendance", fields: [studentId], references: [id])
+  applicationId String  @unique
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  present     Boolean   @default(false)
+  markedAt    DateTime?
+  markedById  String?
+  markedBy    User?     @relation("MarkedAttendance", fields: [markedById], references: [id])
+
+  @@unique([opportunityId, studentId])
+}
+
+// Approved/credited hours - forms the student's digital volunteering wallet (المحفظة التطوعية الرقمية)
+model HoursCredit {
+  id            String @id @default(cuid())
+  opportunityId String
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       User   @relation("StudentHours", fields: [studentId], references: [id])
+
+  hours        Float
+  note         String?
+  approvedById String
+  approvedBy   User     @relation("ApprovedHours", fields: [approvedById], references: [id])
+  approvedAt   DateTime @default(now())
+
+  @@unique([opportunityId, studentId])
+  @@index([studentId])
+}
+
+model Notification {
+  id                    String   @id @default(cuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id])
+  title                 String
+  message               String
+  type                  String // APPLICATION_ACCEPTED | APPLICATION_REJECTED | HOURS_APPROVED | NEW_OPPORTUNITY
+  relatedOpportunityId  String?
+  isRead                Boolean  @default(false)
+  createdAt             DateTime @default(now())
+
+  @@index([userId, isRead])
+}
