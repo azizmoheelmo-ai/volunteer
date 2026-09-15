@@ -1,5 +1,11 @@
 export type Role = "TEACHER" | "STUDENT" | "ADMIN";
 
+export function homePathForRole(role: Role): string {
+  if (role === "STUDENT") return "/student";
+  if (role === "ADMIN") return "/admin";
+  return "/teacher";
+}
+
 export type OpportunityField = "ثقافي" | "بيئي" | "اجتماعي" | "تقني" | "تنظيمي";
 export const OPPORTUNITY_FIELDS: OpportunityField[] = ["ثقافي", "بيئي", "اجتماعي", "تقني", "تنظيمي"];
 

@@ -65,7 +65,7 @@ model Application {
   opportunityId String
   opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
   studentId     String
-  student       User   @relation("StudentApplications", fields: [studentId], references: [id])
+  student       User   @relation("StudentApplications", fields: [studentId], references: [id], onDelete: Cascade)
 
   skills    String? // مهارات اختيارية يذكرها الطالب عند التقديم
   status    String  @default("PENDING") // PENDING | ACCEPTED | REJECTED
@@ -87,7 +87,7 @@ model Attendance {
   opportunityId String
   opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
   studentId     String
-  student       User   @relation("StudentAttendance", fields: [studentId], references: [id])
+  student       User   @relation("StudentAttendance", fields: [studentId], references: [id], onDelete: Cascade)
   applicationId String  @unique
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
@@ -105,7 +105,7 @@ model HoursCredit {
   opportunityId String
   opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
   studentId     String
-  student       User   @relation("StudentHours", fields: [studentId], references: [id])
+  student       User   @relation("StudentHours", fields: [studentId], references: [id], onDelete: Cascade)
 
   hours        Float
   note         String?
@@ -120,7 +120,7 @@ model HoursCredit {
 model Notification {
   id                    String   @id @default(cuid())
   userId                String
-  user                  User     @relation(fields: [userId], references: [id])
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title                 String
   message               String
   type                  String // APPLICATION_ACCEPTED | APPLICATION_REJECTED | HOURS_APPROVED | NEW_OPPORTUNITY

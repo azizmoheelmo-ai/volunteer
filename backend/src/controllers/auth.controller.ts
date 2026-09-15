@@ -4,15 +4,15 @@ import { prisma } from "../lib/prisma.js";
 import { hashPassword, comparePassword } from "../utils/password.js";
 import { signToken } from "../utils/jwt.js";
 import { AppError } from "../middleware/errorHandler.js";
-import { ROLES } from "../constants.js";
 
+// Public self-registration is for students only — teacher/admin accounts are
+// provisioned separately (seed data or the admin panel), never by request body.
 const registerSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(6),
-  role: z.enum(ROLES),
   studentNumber: z.string().optional(),
-  grade: z.string().optional(),
+  grade: z.string().min(1),
   phone: z.string().optional(),
 });
 
@@ -21,7 +21,7 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-function toPublicUser(user: {
+export function toPublicUser(user: {
   id: string;
   name: string;
   email: string;
@@ -54,7 +54,7 @@ export async function register(req: Request, res: Response) {
       name: data.name,
       email: data.email,
       passwordHash: await hashPassword(data.password),
-      role: data.role,
+      role: "STUDENT",
       studentNumber: data.studentNumber,
       grade: data.grade,
       phone: data.phone,

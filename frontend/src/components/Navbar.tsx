@@ -1,5 +1,12 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import type { Role } from "../types";
+
+const ROLE_LABELS: Record<Role, string> = {
+  TEACHER: "مشرف تطوع",
+  STUDENT: "طالب",
+  ADMIN: "مسؤول النظام",
+};
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -15,9 +22,9 @@ export function Navbar() {
         {user && (
           <div className="flex items-center gap-3 text-sm">
             <span className="text-gray-600">
-              {user.name} <span className="text-gray-400">({user.role === "TEACHER" ? "مشرف تطوع" : "طالب"})</span>
+              {user.name} <span className="text-gray-400">({ROLE_LABELS[user.role]})</span>
             </span>
-            <button onClick={logout} className="btn-secondary">
+            <button onClick={logout} className="btn-secondary" aria-label="تسجيل الخروج">
               تسجيل الخروج
             </button>
           </div>

@@ -17,6 +17,17 @@ async function main() {
     },
   });
 
+  const admin = await prisma.user.upsert({
+    where: { email: "admin@bayan.edu.sa" },
+    update: {},
+    create: {
+      name: "مسؤول النظام",
+      email: "admin@bayan.edu.sa",
+      passwordHash: password,
+      role: "ADMIN",
+    },
+  });
+
   const students = await Promise.all(
     [
       { name: "سارة أحمد", email: "sara@bayan.edu.sa", studentNumber: "1001", grade: "2-1" },
@@ -49,7 +60,12 @@ async function main() {
     },
   });
 
-  console.log("Seeded:", { teacher: teacher.email, students: students.map((s) => s.email), opportunity: opportunity.title });
+  console.log("Seeded:", {
+    admin: admin.email,
+    teacher: teacher.email,
+    students: students.map((s) => s.email),
+    opportunity: opportunity.title,
+  });
   console.log("Default password for all demo accounts: password123");
 }
 

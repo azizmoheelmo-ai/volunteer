@@ -1,15 +1,18 @@
 import { Navigate, Route, Routes, Outlet } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+import { homePathForRole } from "./types";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Navbar } from "./components/Navbar";
 import { RoleTabs } from "./components/RoleTabs";
 import { Login } from "./pages/Login";
+import { Register } from "./pages/Register";
 import { PublicOpportunityPage } from "./pages/PublicOpportunity";
 import { TeacherDashboard } from "./pages/teacher/Dashboard";
 import { CreateOpportunity } from "./pages/teacher/CreateOpportunity";
 import { OpportunityDetail } from "./pages/teacher/OpportunityDetail";
 import { StudentOpportunities } from "./pages/student/Opportunities";
 import { StudentWallet } from "./pages/student/Wallet";
+import { AdminUsers } from "./pages/admin/Users";
 
 function TeacherLayout() {
   return (
@@ -34,10 +37,24 @@ function StudentLayout() {
   );
 }
 
+function AdminLayout() {
+  return (
+    <div>
+      <RoleTabs
+        tabs={[
+          { to: "/admin", label: "إدارة المستخدمين" },
+          { to: "/teacher", label: "الفرص التطوعية" },
+        ]}
+      />
+      <Outlet />
+    </div>
+  );
+}
+
 function Home() {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
-  return <Navigate to={user.role === "STUDENT" ? "/student" : "/teacher"} replace />;
+  return <Navigate to={homePathForRole(user.role)} replace />;
 }
 
 export default function App() {
@@ -47,6 +64,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/public/opportunities/:slug" element={<PublicOpportunityPage />} />
 
         <Route
@@ -86,6 +104,17 @@ export default function App() {
         >
           <Route index element={<StudentOpportunities />} />
           <Route path="wallet" element={<StudentWallet />} />
+        </Route>
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute roles={["ADMIN"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminUsers />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
