@@ -10,14 +10,13 @@
 
 ```
 volunteer/
-├── backend/    Node.js + Express + TypeScript + Prisma + SQLite (قابل للتحويل لـ PostgreSQL)
+├── backend/    Node.js + Express + TypeScript + Prisma + PostgreSQL
 └── frontend/   React + TypeScript + Vite + TailwindCSS (RTL / عربي بالكامل)
 ```
 
 **لماذا هذا الاختيار؟**
-- **Prisma + SQLite** للتطوير: صفر إعداد، ملف قاعدة بيانات واحد (`dev.db`)، مع
-  إمكانية التحويل لـ PostgreSQL في الإنتاج بتغيير سطر واحد في `schema.prisma`
-  (السكيما لا تستخدم أنواع خاصة بـ SQLite، فهي متوافقة مباشرة).
+- **Prisma + PostgreSQL**: قاعدة بيانات علائقية قوية ومناسبة للإنتاج، مع
+  Prisma كطبقة ORM آمنة الأنواع (Type-safe) تسهّل التوسع لاحقاً.
 - **REST API بسيط** بدل GraphQL: يسهّل الدمج المستقبلي مع أنظمة وزارة التعليم
   والمنصة الوطنية للعمل التطوعي التي غالباً تتعامل مع REST/Webhooks.
 - **QR Code + رابط فريد** يُولَّدان من الخادم مباشرة (مكتبة `qrcode`) بحيث لا
@@ -65,15 +64,38 @@ volunteer/
 | `GET /reports/students/me/certificate.pdf` | شهادة سجل التطوع للطالب |
 | `GET /public/opportunities/:slug` | صفحة عامة (بدون تسجيل دخول) لعرض الفرصة عبر رابط QR/المشاركة |
 
+## النشر السحابي المجاني (بدون طرفية) — Render
+
+أسهل طريقة لتجربة النظام كرابط تفتحه من أي جهاز، بدون تثبيت أي برامج:
+
+1. أنشئ حساباً مجانياً على [render.com](https://render.com) (يمكن الدخول مباشرة بحساب GitHub).
+2. من لوحة Render اضغط **New +** ثم اختر **Blueprint**.
+3. اربط حساب GitHub وحدد المستودع `azizmoheelmo-ai/volunteer` والفرع
+   `claude/smart-school-volunteering-system-v75dy9`.
+4. سيكتشف Render ملف [`render.yaml`](render.yaml) تلقائياً وينشئ 3 خدمات:
+   قاعدة بيانات PostgreSQL، خادم الـ Backend، وموقع الـ Frontend الثابت.
+   اختر الخطة **Free** لكل خدمة إذا ظهرت لك خيارات الخطط، ثم اضغط **Apply**.
+5. انتظر 3-5 دقائق حتى تكتمل عملية البناء والنشر (تقدر تتابع السجلات "Logs").
+6. افتح رابط خدمة `bayan-frontend` (يظهر أعلى صفحتها في لوحة Render، عادة
+   بصيغة `https://bayan-frontend.onrender.com`) — هذا رابط النظام الجاهز.
+
+> ملاحظة: أول طلب بعد فترة خمول قد يأخذ حتى 30-50 ثانية ليستيقظ الخادم
+> (سلوك طبيعي في الخطة المجانية من Render). إذا كان اسم الخدمة محجوزاً من
+> مستخدم آخر، سيضيف Render لاحقة عشوائية للرابط — تحقق من الرابط الفعلي في
+> لوحة التحكم وحدّث متغير `VITE_API_URL` في خدمة الـ Backend إذا لزم الأمر.
+
 ## التشغيل محلياً
+
+يتطلب التشغيل المحلي وجود PostgreSQL (محلي عبر Docker، أو رابط مجاني من
+[neon.tech](https://neon.tech) أو [supabase.com](https://supabase.com)).
 
 ### الخادم (Backend)
 
 ```bash
 cd backend
 npm install
-cp .env.example .env
-npx prisma migrate dev --name init   # ينشئ قاعدة بيانات SQLite ويزرع بيانات تجريبية
+cp .env.example .env                 # عدّل DATABASE_URL برابط قاعدة بياناتك
+npx prisma migrate dev --name init   # ينشئ الجداول ويزرع بيانات تجريبية
 npm run dev                          # يعمل على http://localhost:4000
 ```
 
