@@ -92,7 +92,7 @@ export async function listOpportunities(req: Request, res: Response) {
   const opportunities = await prisma.opportunity.findMany({
     where,
     orderBy: { createdAt: "desc" },
-    include: { _count: { select: { applications: true } } },
+    include: { createdBy: { select: { id: true, name: true } }, _count: { select: { applications: true } } },
   });
 
   res.json({ opportunities: opportunities.map(serialize) });

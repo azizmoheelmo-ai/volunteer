@@ -1,21 +1,25 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client";
+import { useAuth } from "../../context/AuthContext";
 import { Badge } from "../../components/Badge";
 import { StatCard } from "../../components/StatCard";
 import { formatDateTime } from "../../utils/download";
 import type { Opportunity } from "../../types";
 
 export function TeacherDashboard() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Admins see every opportunity across all supervisors; teachers see only their own.
     api
-      .get("/opportunities", { params: { mine: "true" } })
+      .get("/opportunities", { params: { mine: isAdmin ? undefined : "true" } })
       .then((res) => setOpportunities(res.data.opportunities))
       .finally(() => setLoading(false));
-  }, []);
+  }, [isAdmin]);
 
   const totalApplicants = opportunities.reduce((sum, o) => sum + (o.applicantsCount ?? 0), 0);
   const active = opportunities.filter((o) => o.status === "PUBLISHED").length;
@@ -23,7 +27,7 @@ export function TeacherDashboard() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">لوحة تحكم مشرف التطوع</h1>
+        <h1 className="text-2xl font-bold">{isAdmin ? "جميع الفرص التطوعية" : "لوحة تحكم مشرف التطوع"}</h1>
         <Link to="/teacher/opportunities/new" className="btn-primary">
           + إنشاء فرصة تطوعية
         </Link>
@@ -55,6 +59,7 @@ export function TeacherDashboard() {
                 <span>
                   {o.applicantsCount ?? 0} / {o.maxVolunteers} متطوع
                 </span>
+                {isAdmin && o.createdBy && <span>بواسطة: {o.createdBy.name}</span>}
               </div>
             </Link>
           ))}
