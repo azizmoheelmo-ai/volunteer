@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { api, apiErrorMessage } from "../../api/client";
 import { Badge } from "../../components/Badge";
 import { downloadFile, formatDateTime } from "../../utils/download";
@@ -7,6 +7,7 @@ import type { Application, AttendanceRow, Opportunity } from "../../types";
 
 export function OpportunityDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
@@ -77,6 +78,16 @@ export function OpportunityDetail() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  async function deleteOpportunity() {
+    if (!confirm("هل أنت متأكد من حذف هذه الفرصة؟ سيتم حذف كل الطلبات والحضور المرتبط بها. لا يمكن التراجع.")) return;
+    try {
+      await api.delete(`/opportunities/${id}`);
+      navigate("/teacher");
+    } catch (err) {
+      setMessage(apiErrorMessage(err));
+    }
+  }
+
   if (!opportunity) return <div className="mx-auto max-w-5xl px-4 py-8 text-gray-500">جارِ التحميل...</div>;
 
   return (
@@ -97,6 +108,9 @@ export function OpportunityDetail() {
             <span>الحد الأقصى: {opportunity.maxVolunteers}</span>
           </div>
         </div>
+        <button className="btn-danger shrink-0" onClick={deleteOpportunity}>
+          حذف الفرصة
+        </button>
       </div>
 
       {message && (

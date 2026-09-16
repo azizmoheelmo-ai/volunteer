@@ -36,7 +36,7 @@ export function Register() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <span className="inline-block rounded-lg bg-brand-600 px-3 py-1.5 text-2xl font-bold text-white">بيان</span>
+          <span className="inline-block rounded-lg bg-brand-600 px-3 py-1.5 text-2xl font-bold text-white">تطوع بدر</span>
           <p className="mt-2 text-gray-500">إنشاء حساب طالب جديد</p>
         </div>
 

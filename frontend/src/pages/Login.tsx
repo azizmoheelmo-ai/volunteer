@@ -32,7 +32,7 @@ export function Login() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <span className="inline-block rounded-lg bg-brand-600 px-3 py-1.5 text-2xl font-bold text-white">بيان</span>
+          <span className="inline-block rounded-lg bg-brand-600 px-3 py-1.5 text-2xl font-bold text-white">تطوع بدر</span>
           <p className="mt-2 text-gray-500">التطوع المدرسي الذكي</p>
         </div>
 
@@ -45,7 +45,7 @@ export function Login() {
               className="input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@bayan.edu.sa"
+              placeholder="name@example.com"
             />
           </div>
           <div>
@@ -70,14 +70,6 @@ export function Login() {
             أنشئ حساباً
           </Link>
         </p>
-
-        <div className="mt-4 rounded-lg bg-gray-100 p-3 text-xs text-gray-500">
-          <p className="font-medium">حسابات تجريبية:</p>
-          <p>مسؤول النظام: admin@bayan.edu.sa</p>
-          <p>مشرف تطوع: teacher@bayan.edu.sa</p>
-          <p>طالبة: sara@bayan.edu.sa</p>
-          <p>كلمة المرور: password123</p>
-        </div>
       </div>
     </div>
   );

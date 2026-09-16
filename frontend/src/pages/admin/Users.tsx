@@ -9,6 +9,8 @@ const ROLE_LABELS: Record<Role, string> = {
   ADMIN: "مسؤول النظام",
 };
 
+const emptyCreateForm = { name: "", email: "", password: "", role: "TEACHER" as "TEACHER" | "STUDENT", grade: "", studentNumber: "" };
+
 export function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +20,11 @@ export function AdminUsers() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  const [showCreate, setShowCreate] = useState(false);
+  const [createForm, setCreateForm] = useState(emptyCreateForm);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   function load() {
     setLoading(true);
@@ -55,6 +62,25 @@ export function AdminUsers() {
     }
   }
 
+  async function createUser() {
+    setCreating(true);
+    setCreateError(null);
+    try {
+      await api.post("/admin/users", {
+        ...createForm,
+        grade: createForm.grade || undefined,
+        studentNumber: createForm.studentNumber || undefined,
+      });
+      setShowCreate(false);
+      setCreateForm(emptyCreateForm);
+      load();
+    } catch (err) {
+      setCreateError(apiErrorMessage(err));
+    } finally {
+      setCreating(false);
+    }
+  }
+
   async function deleteUser(user: User) {
     if (!confirm(`هل أنت متأكد من حذف "${user.name}"؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
     try {
@@ -68,7 +94,12 @@ export function AdminUsers() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">إدارة المستخدمين</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">إدارة المستخدمين</h1>
+        <button className="btn-primary" onClick={() => setShowCreate(true)}>
+          + إضافة مستخدم
+        </button>
+      </div>
 
       {message && (
         <div className="mb-4 rounded-lg bg-brand-50 px-4 py-2 text-sm text-brand-700">
@@ -137,6 +168,71 @@ export function AdminUsers() {
           </div>
         )}
       </div>
+
+      {showCreate && (
+        <Modal title="إضافة مستخدم جديد" onClose={() => setShowCreate(false)}>
+          <div className="space-y-4">
+            <div>
+              <label className="label">الدور</label>
+              <select
+                className="input"
+                value={createForm.role}
+                onChange={(e) => setCreateForm({ ...createForm, role: e.target.value as "TEACHER" | "STUDENT" })}
+              >
+                <option value="TEACHER">مشرف تطوع</option>
+                <option value="STUDENT">طالب</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">الاسم</label>
+              <input className="input" value={createForm.name} onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">البريد الإلكتروني</label>
+              <input
+                type="email"
+                className="input"
+                value={createForm.email}
+                onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="label">كلمة المرور</label>
+              <input
+                type="password"
+                minLength={6}
+                className="input"
+                value={createForm.password}
+                onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+              />
+            </div>
+            {createForm.role === "STUDENT" && (
+              <>
+                <div>
+                  <label className="label">الصف/الشعبة</label>
+                  <input
+                    className="input"
+                    value={createForm.grade}
+                    onChange={(e) => setCreateForm({ ...createForm, grade: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="label">رقم الطالب (اختياري)</label>
+                  <input
+                    className="input"
+                    value={createForm.studentNumber}
+                    onChange={(e) => setCreateForm({ ...createForm, studentNumber: e.target.value })}
+                  />
+                </div>
+              </>
+            )}
+            {createError && <p className="text-sm text-red-600">{createError}</p>}
+            <button className="btn-primary w-full" disabled={creating} onClick={createUser}>
+              {creating ? "جارِ الإنشاء..." : "إنشاء الحساب"}
+            </button>
+          </div>
+        </Modal>
+      )}
 
       {editTarget && (
         <Modal title={`تعديل بيانات: ${editTarget.name}`} onClose={() => setEditTarget(null)}>

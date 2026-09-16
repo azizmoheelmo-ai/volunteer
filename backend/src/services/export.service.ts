@@ -32,7 +32,7 @@ export async function buildOpportunityRosterWorkbook(
   rows: RosterRow[],
 ): Promise<ExcelJS.Workbook> {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "بيان - التطوع المدرسي الذكي";
+  workbook.creator = "تطوع بدر - التطوع المدرسي الذكي";
   const sheet = workbook.addWorksheet("كشف المتطوعين", { views: [{ rightToLeft: true }] });
 
   sheet.columns = [
@@ -134,7 +134,7 @@ export function streamStudentCertificatePdf(
   });
 
   doc.moveDown(2);
-  doc.fontSize(10).fillColor("gray").text("صادرة آلياً عبر منصة بيان - التطوع المدرسي الذكي", { align: "center" });
+  doc.fontSize(10).fillColor("gray").text("صادرة آلياً عبر منصة تطوع بدر - التطوع المدرسي الذكي", { align: "center" });
 
   doc.end();
 }

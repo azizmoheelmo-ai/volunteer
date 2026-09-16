@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
+import { hashPassword } from "../utils/password.js";
 import { AppError } from "../middleware/errorHandler.js";
 import { toPublicUser } from "./auth.controller.js";
 
@@ -8,6 +9,19 @@ const updateUserSchema = z.object({
   name: z.string().min(2).optional(),
   grade: z.string().optional(),
   studentNumber: z.string().optional(),
+  phone: z.string().optional(),
+});
+
+// Admins provision TEACHER or STUDENT accounts here. ADMIN accounts are never
+// created through this endpoint — the owner is bootstrapped once by the seed
+// script; anything else would blur who the hidden owner actually is.
+const createUserSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(6),
+  role: z.enum(["TEACHER", "STUDENT"]),
+  studentNumber: z.string().optional(),
+  grade: z.string().optional(),
   phone: z.string().optional(),
 });
 
@@ -19,6 +33,27 @@ export async function listUsers(req: Request, res: Response) {
     orderBy: { createdAt: "desc" },
   });
   res.json({ users: users.map(toPublicUser) });
+}
+
+export async function createUser(req: Request, res: Response) {
+  const data = createUserSchema.parse(req.body);
+
+  const existing = await prisma.user.findUnique({ where: { email: data.email } });
+  if (existing) throw new AppError("البريد الإلكتروني مستخدم مسبقاً", 409);
+
+  const user = await prisma.user.create({
+    data: {
+      name: data.name,
+      email: data.email,
+      passwordHash: await hashPassword(data.password),
+      role: data.role,
+      studentNumber: data.studentNumber,
+      grade: data.grade,
+      phone: data.phone,
+    },
+  });
+
+  res.status(201).json({ user: toPublicUser(user) });
 }
 
 export async function updateUser(req: Request, res: Response) {

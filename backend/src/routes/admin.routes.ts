@@ -8,5 +8,6 @@ export const adminRouter = Router();
 adminRouter.use(requireAuth, requireRole("ADMIN"));
 
 adminRouter.get("/users", asyncHandler(adminController.listUsers));
+adminRouter.post("/users", asyncHandler(adminController.createUser));
 adminRouter.patch("/users/:id", asyncHandler(adminController.updateUser));
 adminRouter.delete("/users/:id", asyncHandler(adminController.deleteUser));

@@ -3,6 +3,7 @@ import { useAuth } from "./context/AuthContext";
 import { homePathForRole } from "./types";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Navbar } from "./components/Navbar";
+import { Footer } from "./components/Footer";
 import { RoleTabs } from "./components/RoleTabs";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
@@ -129,6 +130,7 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <Footer />
     </div>
   );
 }
