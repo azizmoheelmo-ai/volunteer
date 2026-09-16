@@ -32,7 +32,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://bayan-backend.onrender.com/api
+        value: https://bayan-backend-wpbu.onrender.com/api
     routes:
       - type: rewrite
         source: /*
