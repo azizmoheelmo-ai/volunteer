@@ -21,6 +21,16 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const updateMeSchema = z
+  .object({
+    currentPassword: z.string().min(1),
+    newEmail: z.string().email().optional(),
+    newPassword: z.string().min(6).optional(),
+  })
+  .refine((d) => d.newEmail || d.newPassword, {
+    message: "يجب إدخال بريد إلكتروني جديد أو كلمة مرور جديدة",
+  });
+
 export function toPublicUser(user: {
   id: string;
   name: string;
@@ -80,4 +90,28 @@ export async function login(req: Request, res: Response) {
 export async function me(req: Request, res: Response) {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: req.auth!.userId } });
   res.json({ user: toPublicUser(user) });
+}
+
+export async function updateMe(req: Request, res: Response) {
+  const data = updateMeSchema.parse(req.body);
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: req.auth!.userId } });
+
+  if (!(await comparePassword(data.currentPassword, user.passwordHash))) {
+    throw new AppError("كلمة المرور الحالية غير صحيحة", 401);
+  }
+
+  if (data.newEmail && data.newEmail !== user.email) {
+    const existing = await prisma.user.findUnique({ where: { email: data.newEmail } });
+    if (existing) throw new AppError("البريد الإلكتروني مستخدم مسبقاً", 409);
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      email: data.newEmail,
+      passwordHash: data.newPassword ? await hashPassword(data.newPassword) : undefined,
+    },
+  });
+
+  res.json({ user: toPublicUser(updated) });
 }

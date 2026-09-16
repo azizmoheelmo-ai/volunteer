@@ -21,9 +21,9 @@ export function Navbar() {
 
         {user && (
           <div className="flex items-center gap-3 text-sm">
-            <span className="text-gray-600">
+            <Link to="/account" className="text-gray-600 hover:text-brand-700">
               {user.name} <span className="text-gray-400">({ROLE_LABELS[user.role]})</span>
-            </span>
+            </Link>
             <button onClick={logout} className="btn-secondary" aria-label="تسجيل الخروج">
               تسجيل الخروج
             </button>

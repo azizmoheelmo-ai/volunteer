@@ -6,6 +6,7 @@ import { Navbar } from "./components/Navbar";
 import { RoleTabs } from "./components/RoleTabs";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
+import { Account } from "./pages/Account";
 import { PublicOpportunityPage } from "./pages/PublicOpportunity";
 import { TeacherDashboard } from "./pages/teacher/Dashboard";
 import { CreateOpportunity } from "./pages/teacher/CreateOpportunity";
@@ -66,6 +67,15 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/public/opportunities/:slug" element={<PublicOpportunityPage />} />
+
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute roles={["TEACHER", "STUDENT", "ADMIN"]}>
+              <Account />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/teacher"
