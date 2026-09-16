@@ -21,6 +21,7 @@ model User {
   studentNumber String? // رقم الطالب - للطلاب فقط
   grade         String? // الصف/الشعبة - للطلاب فقط، مثال "2-3"
   phone         String?
+  isOwner       Boolean  @default(false) // مالك النظام - مخفي دائماً من أي قائمة مستخدمين ومحمي من التعديل/الحذف
   createdAt     DateTime @default(now())
 
   opportunitiesCreated Opportunity[]  @relation("CreatedOpportunities")

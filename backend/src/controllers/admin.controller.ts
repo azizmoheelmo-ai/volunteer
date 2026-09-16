@@ -14,7 +14,8 @@ const updateUserSchema = z.object({
 export async function listUsers(req: Request, res: Response) {
   const { role } = req.query as { role?: string };
   const users = await prisma.user.findMany({
-    where: role ? { role } : undefined,
+    // The owner account never appears in this list, for anyone, under any filter.
+    where: { isOwner: false, ...(role ? { role } : {}) },
     orderBy: { createdAt: "desc" },
   });
   res.json({ users: users.map(toPublicUser) });
@@ -23,7 +24,7 @@ export async function listUsers(req: Request, res: Response) {
 export async function updateUser(req: Request, res: Response) {
   const data = updateUserSchema.parse(req.body);
   const target = await prisma.user.findUnique({ where: { id: req.params.id } });
-  if (!target) throw new AppError("المستخدم غير موجود", 404);
+  if (!target || target.isOwner) throw new AppError("المستخدم غير موجود", 404);
 
   const user = await prisma.user.update({ where: { id: req.params.id }, data });
   res.json({ user: toPublicUser(user) });
@@ -36,7 +37,7 @@ export async function deleteUser(req: Request, res: Response) {
   }
 
   const target = await prisma.user.findUnique({ where: { id } });
-  if (!target) throw new AppError("المستخدم غير موجود", 404);
+  if (!target || target.isOwner) throw new AppError("المستخدم غير موجود", 404);
 
   if (target.role === "TEACHER" || target.role === "ADMIN") {
     const [opportunities, decisions, attendanceMarks, hoursApproved] = await Promise.all([

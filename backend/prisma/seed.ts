@@ -17,16 +17,22 @@ async function main() {
     },
   });
 
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@bayan.edu.sa" },
-    update: {},
-    create: {
-      name: "مسؤول النظام",
-      email: "admin@bayan.edu.sa",
-      passwordHash: password,
-      role: "ADMIN",
-    },
-  });
+  // Keyed by role, not email: the owner may have changed their email via
+  // account settings, so an email-keyed upsert would create a stray duplicate
+  // admin account instead of finding the real one. We only ever flag isOwner
+  // here — never touch an existing admin's email/password.
+  const existingAdmin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
+  const admin = existingAdmin
+    ? await prisma.user.update({ where: { id: existingAdmin.id }, data: { isOwner: true } })
+    : await prisma.user.create({
+        data: {
+          name: "مسؤول النظام",
+          email: "admin@bayan.edu.sa",
+          passwordHash: password,
+          role: "ADMIN",
+          isOwner: true,
+        },
+      });
 
   const students = await Promise.all(
     [
